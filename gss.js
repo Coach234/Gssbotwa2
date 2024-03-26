@@ -56,12 +56,11 @@ const acr = new acrcloud({
     access_key: 'c33c767d683f78bd17d4bd4991955d81',
     access_secret: 'bvgaIAEtADBTbLwiPGYlxupWqkNGIjT7J9Ag2vIu'
 });
-const apiKey = "AIzaSyANBCTOmcHkrA15S5e2lyNMbZzmiJRn1iA";
+const apiKey = "AIzaSyChpx8N6gNWPOZoKCsJxbdnVbNvolEoito";
 const genAI = new GoogleGenerativeAI(apiKey);
 const tempMailAddresses = {};
 const defaultLang = 'en'
 const { addPremiumUser, getPremiumExpired, getPremiumPosition,  expiredPremiumCheck, checkPremiumUser, getAllPremiumUser,} = require('./lib/premiun');
-let vcapiKey = 'JNIEhCxbV8apFC4RvHvl8ntahzGv1Vf0XzLp3q5upQcxyu6dn0KYNsJno8ZM';
 
 // read database
 let nttoxic = JSON.parse(fs.readFileSync('./database/antitoxic.json'))
@@ -107,10 +106,14 @@ module.exports = gss = async (gss, m, chatUpdate, store) => {
         var args = body.trim().split(/ +/).slice(1)
         args = args.concat(['','','','','',''])
 
+
+
 //prefix v2
-const pric = /^#.¦|\\^/.test(body) ? body.match(/^#.¦|\\^/gi) : '.'
-        const isAsu = body.startsWith(pric)
-        const isCommand = isAsu ? body.replace(pric, '').trim().split(/ +/).shift().toLowerCase() : ""
+const pric = /^#|\^/.test(body) ? body.match(/^#|\^/gi) : '.';
+const isAsu = body.startsWith(global.prefa[0]) || body.startsWith(global.prefa[1]);
+const isCommand = isAsu ? body.replace(pric, '').trim().split(/ +/).shift().toLowerCase() : '';
+
+
         const pushname = m.pushName || "No Name"
         const botNumber = await gss.decodeJid(gss.user.id)
         const isCreator = [botNumber, ...global.owner].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
@@ -123,7 +126,7 @@ const pric = /^#.¦|\\^/.test(body) ? body.match(/^#.¦|\\^/gi) : '.'
         const isMedia = /image|video|sticker|audio/.test(mime)
 const isViewOnce = ["viewOnceMessageV2","viewOnceMessage"].includes(m.type)
 	const botname = "𝐆𝐒𝐒_𝚩𝚯𝚻𝐖𝚫";
-	const devlopernumber = "919142294671";
+	const devlopernumber = "917050906659";
         // Group
         const groupMetadata = m.isGroup ? await gss.groupMetadata(m.chat).catch(e => {}) : ''
         const groupName = m.isGroup ? groupMetadata.subject : ''
@@ -254,8 +257,7 @@ async function mainSys() {
   let OS = osu.os.platform();
   let ipx = osu.os.ip();
 
-   // const chats = Object.entries(client.chats).filter(([id, data]) => id && data.isChats) 
-   //  const groupsIn = chats.filter(([id]) => id.endsWith('@g.us')) //groups.filter(v => !v.read_only) 
+
      const used = process.memoryUsage() 
      const _cpus = cpus().map(cpu => { 
          cpu.total = Object.keys(cpu.times).reduce((last, type) => last + cpu.times[type], 0) 
@@ -453,15 +455,15 @@ let ALWAYS_ONLINE = process.env.ALWAYS_ONLINE === 'true';
 let chats = db.data.chats[m.chat]
             if (typeof chats !== 'object') db.data.chats[m.chat] = {}
             if (chats) {
-              if (!("antiDelete" in chats)) chats.antiDelete = false
+              if (!('antiviewonce' in chats)) chats.antiviewonce = false
+              if (!('antibot' in chats)) chats.antibot = true
                 if (!('mute' in chats)) chats.mute = false
                 if (!('antilink' in chats)) chats.antilink = false
-                 if (!('antibot' in chats)) chats.antibot = false
             } else global.db.data.chats[m.chat] = {
-                antiDelete: false,
+                antiviewonce: true,
+                antibot: true,
                 mute: false,
                 antilink: false,
-                antibot: false,
             }
 
 
@@ -475,7 +477,7 @@ if (!('autobio' in setting)) setting.autobio = false
 	    } else global.db.data.settings[botNumber] = {
 	    anticall: false,
 		status: 0,
-		autobio: true
+		autobio: false
 	    }
 	    
         } catch (err) {
@@ -500,8 +502,63 @@ if (!('autobio' in setting)) setting.autobio = false
             timezone: "Asia/kolkata"
         })
         
+        
+        
+        
+        
+         async function deleteUpdate(message) {
+    try {
+
+        const {
+            fromMe,
+            id,
+            participant
+        } = message
+        if (fromMe)
+            return
+        let msg = this.serializeM(this.loadMessage(id))
+        if (!msg)
+            return
+       
+            await this.reply(gss.user.id, `
+            ≡ deleted a message 
+            ┌─⊷  𝘼𝙉𝙏𝙄 𝘿𝙀𝙇𝙀𝙏𝙀 
+            ▢ *Number :* @${participant.split`@`[0]} 
+            └─────────────
+            `.trim(), msg, {
+                        mentions: [participant]
+                    })
+        this.copyNForward(gss.user.id, msg, false).catch(e => console.log(e, msg))
+    } catch (e) {
+        console.error(e)
+    }
+}
+
+        
+       
+    if (db.data.chats[m.chat].antibot && m.isGroup) {
+    if (m.text.startsWith('BAE5') && !m.fromMe) {
+        await gss.sendMessage(m.chat, { text: 'User detected as a bot and has been flagged.'}, { quoted: m });
+    }
+}
 
 
+
+
+/*antiviewonce*/
+    if ( db.data.chats[m.chat].antiviewonce && m.mtype == 'viewOnceMessageV2') {
+    	if (m.isBaileys && m.fromMe) return
+        let val = { ...m }
+        let msg = val.message?.viewOnceMessage?.message || val.message?.viewOnceMessageV2?.message
+        delete msg[Object.keys(msg)[0]].viewOnce
+        val.message = msg
+        await gss.sendMessage(m.chat, { forward: val }, { quoted: m })
+    }
+
+
+
+
+/*AUTOBIO*/
 async function setBio() {
     setInterval(async () => {
         if (db.data.settings[botNumber].autobio) {
@@ -521,10 +578,6 @@ async function setBio() {
 }
 
 setBio();
-
-if (mek.key && mek.key.remoteJid === 'status@s.whatsapp.net') {
-     gss.readMessages([mek.key]);
-}
 
 
 if (isCommand) {
@@ -823,12 +876,12 @@ during ${clockString(new Date - user.afkTime)}`)
         const cmdAi = ["Ai", "Voiceai", "Bug", "Report", "Gpt", "Dalle", "Remini"];
 const cmdTool = ["Calculator", "Tempmail", "Checkmail", "Info", "Trt", "Tts"];
 const cmdGrup = ["LinkGroup", "Setppgc", "Setname", "Setdesc", "Group", "Gcsetting", "Welcome", "Left", "SetWelcome", "SetLeft", "Editinfo", "Add", "Kick", "HideTag", "Tagall", "Totag", "Tagadmin", "AntiLink", "AntiToxic", "Mute", "Promote", "Demote", "Revoke", "Poll", "Getbio"];
-const cmdDown = ["Apk", "Facebook", "Mediafire", "Pinterestdl", "XnxxSearch", "Xnxxdl", "Gitclone", "Gdrive", "Insta", "Instadoc", "Ytmp3", "Ytmp4", "Play", "Song", "Video", "Ytmp3doc", "Ytmp4doc", "Tiktok", "Tiktokdoc"];
+const cmdDown = ["Apk", "Facebook", "Mediafire", "Pinterestdl", "XnxxSearch", "Xnxxdl", "Gitclone", "Gdrive", "Insta", "Ytmp3", "Ytmp4", "Play", "Song", "Video", "Ytmp3doc", "Ytmp4doc", "Tiktok"];
 const cmdSearch = ["Play", "Yts", "Imdb", "Google", "Gimage", "Pinterest", "Wallpaper", "Wikimedia", "Ytsearch", "Ringtone", "Lyrics"];
 const cmdFun = ["Delttt", "Tictactoe"];
 const cmdConv = ["Removebg", "Sticker", "Emojimix", "Tovideo", "Togif", "Tourl", "Tovn", "Tomp3", "Toaudio", "Ebinary", "dbinary", "Styletext", "Fontchange", "Fancy", "Upscale", "hd", "attp", "attp2", "attp3", "ttp", "ttp2", "ttp3", "ttp4", "ttp5", "qc"];
 const cmdMain = ["Ping", "Alive", "Owner", "Menu", "Infochat", "Quoted", "Listpc", "Listgc", "Listonline", "Infobot", "Buypremium"];
-const cmdOwner = ["React", "Chat", "Join", "Leave", "Block", "Unblock", "Bcgroup", "Bcall", "Setppbot", "Setexif", "Anticall", "Setstatus", "Setnamebot", "Sleep", "AutoTyping", "AlwaysOnline", "AutoRead"];
+const cmdOwner = ["React", "Chat", "Join", "Leave", "Block", "Unblock", "Bcgroup", "Bcall", "Setppbot", "Setexif", "Anticall", "Setstatus", "Setnamebot", "Sleep", "AutoTyping", "AlwaysOnline", "AutoRead", "autosview", "ban", "unban", "warn", "unwarn", "banchat"];
 const cmdStalk = ["Nowa", "Truecaller", "InstaStalk", "GithubStalk"];
 
 
@@ -869,18 +922,22 @@ const introTextFun = generateMenu(cmdFun, '𝗙𝗨𝗡 𝗠𝗘𝗡𝗨');
 const introTextTool = generateMenu(cmdTool, '𝗧𝗢𝗢𝗟 𝗠𝗘𝗡𝗨');
 const introTextAi = generateMenu(cmdAi, '𝗔𝗜 𝗠𝗘𝗡𝗨');
 
+const menuText = `
+*ᴍᴇɴᴜ ʟɪsᴛ*
+1. ᴄᴏɴᴠᴇʀᴛᴍᴇɴᴜ
+2. ᴅᴏᴡɴʟᴏᴀᴅᴍᴇɴᴜ
+3. ɢʀᴏᴜᴘᴍᴇɴᴜ
+4. sᴛᴀʟᴋᴍᴇɴᴜ
+5. sᴇᴀʀᴄʜᴍᴇɴᴜ
+6. ᴛᴏᴏʟᴍᴇɴᴜ
+7. ғᴜɴᴍᴇɴᴜ
+8. ᴀɪᴍᴇɴᴜ
+9. ᴍᴀɪɴᴍᴇɴᴜ`;
+
 const menuMessage = `
-╭───═❮ *ᴍᴇɴᴜ ʟɪsᴛ*❯═───❖
+╭───═❮ *ᴍᴇɴᴜ ʟɪsᴛ* ❯═───❖
 │╭─────────────···▸
-││▸ ➊ ᴄᴏɴᴠᴇʀᴛᴍᴇɴᴜ
-││▸ ➋ ᴅᴏᴡɴʟᴏᴀᴅᴍᴇɴᴜ
-││▸ ➌ ɢʀᴏᴜᴘᴍᴇɴᴜ
-││▸ ➍ sᴛᴀʟᴋᴍᴇɴᴜ
-││▸ ➎ sᴇᴀʀᴄʜᴍᴇɴᴜ
-││▸ ➏ ᴛᴏᴏʟᴍᴇɴᴜ
-││▸ ➐ ғᴜɴᴍᴇɴᴜ
-││▸ ➑ ᴀɪᴍᴇɴᴜ
-││▸ ➒ ᴍᴀɪɴᴍᴇɴᴜ
+${menuText.split('\n').map(item => `││▸ ${item}`).join('\n')}
 │╰──────────────
 ╰━━━━━━━━━━━━━━━┈⊷`;
 
@@ -896,11 +953,23 @@ const subMenus = {
     '9': introTextMain,
 };
 
+
 if (m.text) {
     const lowerText = m.text.toLowerCase();
 
-    if (lowerText.includes('.meenu')) {
-        m.reply(menuMessage);
+    if (lowerText.includes('.menu2')) {
+        await gss.sendMessage(m.chat, {
+            image: { url: 'https://telegra.ph/file/022f5c3d9ce54c8ccf648.jpg' },
+            caption: menuMessage,
+            contextInfo: {
+                externalAdReply: {
+                    showAdAttribution: false,
+                    title: botname,
+                    sourceUrl: global.link,
+                    body: `Bot Created By ${global.owner}`
+                }
+            }
+        }, { quoted: m });
     } else if (/^\d+$/.test(lowerText) && m.quoted) {
         const quotedText = m.quoted.text.toLowerCase();
 
@@ -909,9 +978,20 @@ if (m.text) {
             const subMenu = subMenus[selectedNumber];
 
             if (subMenu !== undefined) {
-                m.reply(subMenu);
+                await gss.sendMessage(m.chat, {
+            image: { url: 'https://telegra.ph/file/022f5c3d9ce54c8ccf648.jpg' },
+            caption: subMenu,
+            contextInfo: {
+                externalAdReply: {
+                    showAdAttribution: false,
+                    title: botname,
+                    sourceUrl: global.link,
+                    body: `Bot Created By ${global.owner}`
+                }
+            }
+        }, { quoted: m });
             } else {
-                m.reply('Invalid menu number. Please select a number from the menu.');
+                await gss.sendMessage(m.chat, {text: 'Invalid menu number. Please select a number from the menu.'}, { quoted: m });
             }
         }
     }
@@ -1160,7 +1240,23 @@ case 'demote': {
 break;
 
 
-
+ case 'welcome':
+            case 'left': {
+              if (isBan) return m.reply(mess.banned);
+        if (isBanChat) return m.reply(mess.bangc);
+        if (!m.isGroup) throw mess.group;
+  if (!isBotAdmins) throw mess.botAdmin;
+  if (!isAdmins) throw mess.admin;
+               if (args.length < 1) return m.reply('on/off?')
+               if (args[0] === 'on') {
+                  welcome = true
+                  m.reply(`${command} is enabled`)
+               } else if (args[0] === 'off') {
+                  welcome = false
+                  m.reply(`${command} is disabled`)
+               }
+            }
+            break
 
 case 'block': {
   if (isBan) return m.reply(mess.banned);
@@ -1481,9 +1577,7 @@ case 'editinfo': {
   }
 }
 break;
-
-
-
+            
             case 'antilink': {
   if (isBan) return m.reply(mess.banned);
   if (isBanChat) return m.reply(mess.bangc);
@@ -1511,44 +1605,6 @@ break;
 
 
 
-
- case 'antibot':{
-   if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-               if (args.length < 1) return m.reply('on/off?')
-               if (args[0] === 'on') {
-                  db.data.chats[m.chat].antibot = true
-                  m.reply(`${command} is enabled`)
-               } else if (args[0] === 'off') {
-                  db.data.chats[m.chat].antibot = false
-                  m.reply(`${command} is disabled`)
-               }
-               }
-            break
-
-case 'antidelete': {
-  if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-if (!isCreator) throw mess.owner;
-    if (!args || args.length < 1) {
-        gss.sendPoll(m.chat, "Choose Antidelete Setting:", [`${prefix}antidelete on`, `${prefix}antidelete off`]);
-    } else {
-        const antideleteSetting = args[0].toLowerCase();
-        if (antideleteSetting === "on") {
-            if (db.data.chats[m.chat]?.antidelete) return m.reply(`Antidelete Already Active`);
-            db.data.chats[m.chat].antidelete = true;
-            m.reply(`Antidelete Activated!`);
-        } else if (antideleteSetting === "off") {
-            if (!db.data.chats[m.chat]?.antidelete) return m.reply(`Antidelete Already Inactive`);
-            db.data.chats[m.chat].antidelete = false;
-            m.reply(`Antidelete Deactivated!`);
-        } else {
-            gss.sendPoll(m.chat, "Choose Antidelete Setting:", [`${prefix}antidelete on`, `${prefix}antidelete off`]);
-        }
-    }
-}
-break;
-
 case 'antiviewonce': {
   if (isBan) return m.reply(mess.banned);
         if (isBanChat) return m.reply(mess.bangc);
@@ -1559,11 +1615,11 @@ if (!isCreator) throw mess.owner;
         const antiviewonceSetting = args[0].toLowerCase();
         if (antiviewonceSetting === "on") {
             if (db.data.chats[m.chat]?.antiviewonce) return m.reply(`Antiviewonce Already Active`);
-            db.data.chats[m.chat].antiviewonce = true;
+            db.data.chats[m.chat].antiviewonce = true
             m.reply(`Antiviewonce Activated!`);
         } else if (antiviewonceSetting === "off") {
             if (!db.data.chats[m.chat]?.antiviewonce) return m.reply(`Antiviewonce Already Inactive`);
-            db.data.chats[m.chat].antiviewonce = false;
+            db.data.chats[m.chat].antiviewonce = false
             m.reply(`Antiviewonce Deactivated!`);
         } else {
             gss.sendPoll(m.chat, "Choose Antiviewonce Setting:", [`${prefix}antiviewonce on`, `${prefix}antiviewonce off`]);
@@ -1571,6 +1627,54 @@ if (!isCreator) throw mess.owner;
     }
 }
 break;
+
+
+case "forward":
+case "fwd":
+  if (!args.length) {
+    await doReact("❌");
+    return m.reply(`Please tag a user or provide a phone number along with the message to forward.\nExample: !forward @username This is the forwarded message.`);
+  }
+
+  let forwardTo = ''; // Initialize the variable to store the user ID or phone number
+
+  // Check if the first argument is a tagged user
+  if (args[0].startsWith('@')) {
+    forwardTo = args[0]; // Store the tagged user ID
+    args.shift(); // Remove the tagged user from the arguments list
+  } else if (/^\+\d{11,}$/.test(args[0])) {
+    forwardTo = args[0]; // Store the phone number
+    args.shift(); // Remove the phone number from the arguments list
+  } else {
+    await doReact("❌");
+    return m.reply(`Invalid format. Please tag a user (@username) or provide a phone number (+countrycodephonenumber) along with the message to forward.`);
+  }
+
+  const forwardedMessage = args.join(' '); // Combine the remaining arguments as the message to forward
+
+  if (!forwardedMessage) {
+    await doReact("❌");
+    return m.reply(`Please provide a message to forward after tagging the user or providing the phone number.`);
+  }
+
+  try {
+    // Check if the forwardTo is a user ID (tagged user) or a phone number
+    if (forwardTo.startsWith('@')) {
+      // Forward the message to the tagged user
+      await gss.sendMessage(forwardTo, forwardedMessage);
+    } else {
+      // Forward the message to the phone number
+      await gss.sendMessage(forwardTo, forwardedMessage, MessageType.text, { quoted: m });
+    }
+
+    await doReact("✅");
+  } catch (error) {
+    console.error(error);
+    await doReact("❌");
+    return m.reply(`An error occurred while forwarding the message: ${error.message}`);
+  }
+  break;
+
 
 case "cricketscore":
 case "score":
@@ -1584,7 +1688,7 @@ case "score":
   const matchId = encodeURIComponent(text);
 
   try {
-    const apiUrl = `https://cricket-olive.vercel.app/score?id=${matchId}`;
+    const apiUrl = `https://iol.apinepdev.workers.dev/${matchId}`;
     const response = await fetch(apiUrl);
 
     if (!response.ok) {
@@ -1599,9 +1703,9 @@ case "score":
     formattedResult += `│⿻   *LIVE MATCH INFO* ✨\n`;
     formattedResult += `│⿻\n`;
 
-    if (result.update && result.update.toLowerCase() !== "data not found") {
-      formattedResult += `│⿻   *${result.title}*\n`;
-      formattedResult += `│⿻   *${result.update}*\n`;
+    if (result.code === 200) {
+      formattedResult += `│⿻   *${result.data.title}*\n`;
+      formattedResult += `│⿻   *${result.data.update}*\n`;
       formattedResult += `│⿻ \n`;
     } else {
       await m.reply(`*Update:* Data not found for the specified match ID.`);
@@ -1609,21 +1713,21 @@ case "score":
       return;
     }
 
-    if (result.livescore && result.livescore.toLowerCase() !== "data not found") {
-      formattedResult += `│⿻   *Live Score:* ${result.livescore}\n`;
-      formattedResult += `│⿻   *Run Rate:* ${result.runrate}\n`;
+    if (result.data.liveScore && result.data.liveScore.toLowerCase() !== "data not found") {
+      formattedResult += `│⿻   *Live Score:* ${result.data.liveScore}\n`;
+      formattedResult += `│⿻   *Run Rate:* ${result.data.runRate}\n`;
       formattedResult += `│⿻\n`;
-      formattedResult += `│⿻   *Batter 1:* ${result.batterone}\n`;
-      formattedResult += `│⿻   *${result.batsmanonerun} (${result.batsmanoneball})* SR: ${result.batsmanonesr} ${result.batsmanone === result.batterone ? "" : ""}\n`;
+      formattedResult += `│⿻   *Batter 1:* ${result.data.batsmanOne}\n`;
+      formattedResult += `│⿻   *${result.data.batsmanOneRun} (${result.data.batsmanOneBall})* SR: ${result.data.batsmanOneSR}\n`;
       formattedResult += `│⿻\n`;
-      formattedResult += `│⿻   *Batter 2:* ${result.battertwo}\n`;
-      formattedResult += `│⿻   *${result.batsmantworun} (${result.batsmantwoball})* SR: ${result.batsmantwosr} ${result.battertwo === result.battertwo ? "" : ""}\n`;
+      formattedResult += `│⿻   *Batter 2:* ${result.data.batsmanTwo}\n`;
+      formattedResult += `│⿻   *${result.data.batsmanTwoRun} (${result.data.batsmanTwoBall})* SR: ${result.data.batsmanTwoSR}\n`;
       formattedResult += `│⿻\n`;
-      formattedResult += `│⿻   *Bowler 1:* ${result.bowlerone}\n`;
-      formattedResult += `│⿻   *${result.bowleroneover} overs, ${result.bowleronerun}/${result.bowleronewickers}, Econ:* ${result.bowleroneeconomy} ${result.bowlerone === result.bowlerone ? "" : ""}\n`;
+      formattedResult += `│⿻   *Bowler 1:* ${result.data.bowlerOne}\n`;
+      formattedResult += `│⿻   *${result.data.bowlerOneOver} overs, ${result.data.bowlerOneRun}/${result.data.bowlerOneWickets}, Econ:* ${result.data.bowlerOneEconomy}\n`;
       formattedResult += `│⿻\n`;
-      formattedResult += `│⿻    *Bowler 2:* ${result.bowlertwo}\n`;
-      formattedResult += `│⿻   *${result.bowlertwoover} overs, ${result.bowlertworun}/${result.bowlertwowickers}, Econ:* ${result.bowlertwoeconomy} ${result.bowlertwo === result.bowlertwo ? "" : ""}\n`;
+      formattedResult += `│⿻   *Bowler 2:* ${result.data.bowlerTwo}\n`;
+      formattedResult += `│⿻   *${result.data.bowlerTwoOver} overs, ${result.data.bowlerTwoRun}/${result.data.bowlerTwoWicket}, Econ:* ${result.data.bowlerTwoEconomy}\n`;
     }
 
     formattedResult += `╰══•∞•═══════════════╯ `;
@@ -1636,6 +1740,7 @@ case "score":
     return m.reply(`An error occurred while processing the cricket score request. ${error.message}`);
   }
   break;
+
 
 
 
@@ -1879,6 +1984,7 @@ case 'autosview':
     case 'autostatusview':{
       if (isBan) return m.reply(mess.banned);
         if (isBanChat) return m.reply(mess.bangc);
+        if (!isCreator) throw mess.owner;
                if (args.length < 1) return m.reply('on/off?')
                if (args[0] === 'on') {
                   antiswview = true
@@ -3155,13 +3261,10 @@ const captionText = `
   break;
 }
 
-
-
-
 case 'play': {
   if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-  if (!text) return m.reply('Enter YouTube Video Link or Search Query!');
+  if (isBanChat) return m.reply(mess.bangc);
+  if (!text) return m.reply('Enter Search Query!');
 
   try {
     const searchResults = await yts(text);
@@ -3177,22 +3280,19 @@ case 'play': {
       return { index, title, duration, views, author, timestamp };
     });
 
-    // Reset the current poll index
     currentPollIndex = 0;
 
-    // Add 'audio', 'video', and 'next' options to the poll
     const pollOptions = ['.𝗔𝗨𝗗𝗜𝗢', '.𝗔𝗨𝗗𝗜𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧', '.𝗩𝗜𝗗𝗘𝗢', '.𝗩𝗜𝗗𝗘𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧', '.𝗡𝗘𝗫𝗧'];
 
     gss.sendPoll(
       m.chat,
-      `Choose an option:\n\n"${resultsArray[currentPollIndex].title}":\nDuration: ${resultsArray[currentPollIndex].duration}\n Views: ${resultsArray[currentPollIndex].views}\n Author: ${resultsArray[currentPollIndex].author}\n Upload Date: ${resultsArray[currentPollIndex].timestamp}`,
+      `Choose an option:\n\n"${resultsArray[currentPollIndex].title}":\nDuration: ${resultsArray[currentPollIndex].duration}\nViews: ${resultsArray[currentPollIndex].views}\nAuthor: ${resultsArray[currentPollIndex].author}\nUpload Date: ${resultsArray[currentPollIndex].timestamp}`,
       pollOptions
     );
   } catch (error) {
     console.error('Error during play:', error);
-    m.reply('Unexpected error occurred.');
+    m.reply('Unexpected error occurred. please vote on next and try again');
   }
-
   break;
 }
 
@@ -3202,9 +3302,7 @@ case '𝗔𝗨𝗗𝗜𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧':
 case '𝗩𝗜𝗗𝗘𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧':
 case '𝗡𝗘𝗫𝗧': {
   if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-        if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
+  if (isBanChat) return m.reply(mess.bangc);
   const pollOption = command.toLowerCase();
 
   if (!videoSearchResults.has(`${m.chat}_${currentPollIndex}`)) {
@@ -3214,107 +3312,103 @@ case '𝗡𝗘𝗫𝗧': {
   const currentResult = videoSearchResults.get(`${m.chat}_${currentPollIndex}`);
 
   switch (pollOption) {
-    
     case '𝗔𝗨𝗗𝗜𝗢': {
-      if (isBan) return m.reply(mess.banned);
+      try {
+        if (isBan) return m.reply(mess.banned);
         if (isBanChat) return m.reply(mess.bangc);
-  try {
-    // Audio download with audio only
-    const audioStream = ytdl(currentResult.url, { quality: 'highestaudio', filter: 'audioonly' });
-    const audioBuffer = await new Promise((resolve, reject) => {
-      const chunks = [];
-      audioStream.on('data', (chunk) => chunks.push(chunk));
-      audioStream.on('end', () => resolve(Buffer.concat(chunks)));
-      audioStream.on('error', (error) => reject(error));
-    });
 
-    await gss.sendMessage(m.chat, { audio: audioBuffer, mimetype: 'audio/mp4', fileName: `${currentResult.title}.mp3` }, { quoted: m });
-  } catch (error) {
-    console.error(`Error during audio download:`, error);
-    m.reply('Unexpected error occurred.');
-  }
-  break;
-}
+        const audioStream = ytdl(currentResult.url, { quality: 'highestaudio', filter: 'audioonly' });
+        const audioBuffer = await new Promise((resolve, reject) => {
+          const chunks = [];
+          audioStream.on('data', (chunk) => chunks.push(chunk));
+          audioStream.on('end', () => resolve(Buffer.concat(chunks)));
+          audioStream.on('error', (error) => reject(error));
+        });
 
-case '𝗔𝗨𝗗𝗜𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧': {
-  try {
-    if (isBan) return m.reply(mess.banned);
+        await gss.sendMessage(m.chat, { audio: audioBuffer, mimetype: 'audio/mp4', fileName: `${currentResult.title}.mp3` }, { quoted: m });
+      } catch (error) {
+        console.error(`Error during audio download:`, error);
+        m.reply('Unexpected error occurred.please vote on next and try again');
+      }
+      break;
+    }
+
+    case '𝗔𝗨𝗗𝗜𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧': {
+      try {
+        if (isBan) return m.reply(mess.banned);
         if (isBanChat) return m.reply(mess.bangc);
-    // Audio download with audio only
-    const audioStream = ytdl(currentResult.url, { quality: 'highestaudio', filter: 'audioonly' });
-    const audioBuffer = await new Promise((resolve, reject) => {
-      const chunks = [];
-      audioStream.on('data', (chunk) => chunks.push(chunk));
-      audioStream.on('end', () => resolve(Buffer.concat(chunks)));
-      audioStream.on('error', (error) => reject(error));
-    });
 
-    await gss.sendMessage(m.chat, { document: audioBuffer, mimetype: 'audio/mp3', fileName: `${currentResult.title}.mp3` }, { quoted: m });
-  } catch (error) {
-    console.error(`Error during audio download:`, error);
-    m.reply('Unexpected error occurred.');
-  }
-  break;
-}
+        const audioStream = ytdl(currentResult.url, { quality: 'highestaudio', filter: 'audioonly' });
+        const audioBuffer = await new Promise((resolve, reject) => {
+          const chunks = [];
+          audioStream.on('data', (chunk) => chunks.push(chunk));
+          audioStream.on('end', () => resolve(Buffer.concat(chunks)));
+          audioStream.on('error', (error) => reject(error));
+        });
 
-case '𝗩𝗜𝗗𝗘𝗢': {
-  try {
-    if (isBan) return m.reply(mess.banned);
+        await gss.sendMessage(m.chat, { document: audioBuffer, mimetype: 'audio/mp3', fileName: `${currentResult.title}.mp3` }, { quoted: m });
+      } catch (error) {
+        console.error(`Error during audio download:`, error);
+        m.reply('Unexpected error occurred.please vote on next and try again');
+      }
+      break;
+    }
+
+    case '𝗩𝗜𝗗𝗘𝗢': {
+      try {
+        if (isBan) return m.reply(mess.banned);
         if (isBanChat) return m.reply(mess.bangc);
-    // Video download with audio and video
-    const videoStream = ytdl(currentResult.url, { quality: 'highest', filter: 'audioandvideo' });
-    const videoBuffer = await new Promise((resolve, reject) => {
-      const chunks = [];
-      videoStream.on('data', (chunk) => chunks.push(chunk));
-      videoStream.on('end', () => resolve(Buffer.concat(chunks)));
-      videoStream.on('error', (error) => reject(error));
-    });
 
-    await gss.sendMessage(m.chat, { video: videoBuffer, mimetype: 'video/mp4', caption: `Downloading video: ${currentResult.title}` }, { quoted: m });
-  } catch (error) {
-    console.error(`Error during video download:`, error);
-    m.reply('Unexpected error occurred.');
-  }
-  break;
-}
+        const videoStream = ytdl(currentResult.url, { quality: 'highest', filter: 'audioandvideo' });
+        const videoBuffer = await new Promise((resolve, reject) => {
+          const chunks = [];
+          videoStream.on('data', (chunk) => chunks.push(chunk));
+          videoStream.on('end', () => resolve(Buffer.concat(chunks)));
+          videoStream.on('error', (error) => reject(error));
+        });
 
-case '𝗩𝗜𝗗𝗘𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧': {
-  try {
-    if (isBan) return m.reply(mess.banned);
+        await gss.sendMessage(m.chat, { video: videoBuffer, mimetype: 'video/mp4', caption: `Downloading video: ${currentResult.title}` }, { quoted: m });
+      } catch (error) {
+        console.error(`Error during video download:`, error);
+        m.reply('Unexpected error occurred.please vote on next and try again');
+      }
+      break;
+    }
+
+    case '𝗩𝗜𝗗𝗘𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧': {
+      try {
+        if (isBan) return m.reply(mess.banned);
         if (isBanChat) return m.reply(mess.bangc);
-    // Video download with audio and video
-    const videoStream = ytdl(currentResult.url, { quality: 'highest', filter: 'audioandvideo' });
-    const videoBuffer = await new Promise((resolve, reject) => {
-      const chunks = [];
-      videoStream.on('data', (chunk) => chunks.push(chunk));
-      videoStream.on('end', () => resolve(Buffer.concat(chunks)));
-      videoStream.on('error', (error) => reject(error));
-    });
 
-    await gss.sendMessage(m.chat, { document: videoBuffer, mimetype: 'video/mp4', fileName: `${currentResult.title}.mp4`, caption: `Downloading video: ${currentResult.title}` }, { quoted: m });
-  } catch (error) {
-    console.error(`Error during video download:`, error);
-    m.reply('Unexpected error occurred.');
-  }
-  break;
-}
+        const videoStream = ytdl(currentResult.url, { quality: 'highest', filter: 'audioandvideo' });
+        const videoBuffer = await new Promise((resolve, reject) => {
+          const chunks = [];
+          videoStream.on('data', (chunk) => chunks.push(chunk));
+          videoStream.on('end', () => resolve(Buffer.concat(chunks)));
+          videoStream.on('error', (error) => reject(error));
+        });
+
+        await gss.sendMessage(m.chat, { document: videoBuffer, mimetype: 'video/mp4', fileName: `${currentResult.title}.mp4`, caption: `Downloading video: ${currentResult.title}` }, { quoted: m });
+      } catch (error) {
+        console.error(`Error during video download:`, error);
+        m.reply('Unexpected error occurred.please vote on next and try again');
+      }
+      break;
+    }
 
     case '𝗡𝗘𝗫𝗧': {
       if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-      // Increment the current poll index for the next search result
-      currentPollIndex++;
+      if (isBanChat) return m.reply(mess.bangc);
 
-      // Check if there are more search results
+      currentPollIndex++;
       if (videoSearchResults.has(`${m.chat}_${currentPollIndex}`)) {
         const nextResult = videoSearchResults.get(`${m.chat}_${currentPollIndex}`);
 
-        // Add 'audio', 'video', and 'next' options to the poll
         const pollOptions = ['.𝗔𝗨𝗗𝗜𝗢', '.𝗔𝗨𝗗𝗜𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧', '.𝗩𝗜𝗗𝗘𝗢', '.𝗩𝗜𝗗𝗘𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧', '.𝗡𝗘𝗫𝗧'];
 
         await gss.sendPoll(
           m.chat,
-          `Choose an option:\n\n"${nextResult.title}":\nDuration: ${nextResult.duration}\n Views: ${nextResult.views}\n Author: ${nextResult.author}\n Upload Date: ${nextResult.timestamp}`,
+          `Choose an option:\n\n"${nextResult.title}":\nDuration: ${nextResult.duration}\nViews: ${nextResult.views}\nAuthor: ${nextResult.author}\nUpload Date: ${nextResult.timestamp}`,
           pollOptions
         );
       } else {
@@ -3331,6 +3425,8 @@ case '𝗩𝗜𝗗𝗘𝗢𝗗𝗢𝗖𝗨𝗠𝗘𝗡𝗧': {
 
   break;
 }
+
+
 
   case 'restart':
     if (isBan) return m.reply(mess.banned);
@@ -3432,22 +3528,13 @@ case 'instagram':
     break;
 
 
-case 'igdldoc':
-case 'instadoc':
-case 'igdoc':
-case 'instagramdoc':
-  if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-    await downloadAndSendMedia(m, text, true);
-    break;
-
-
 case 'toanime':
   if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
+  if (isBanChat) return m.reply(mess.bangc);
   if (!quoted) return m.reply(`Where is the picture?`);
   if (!/image/.test(mime)) return m.reply(`Send/Reply Photos With Captions ${prefix + command}`);
 
+  m.reply(mess.wait);
   try {
     // Download the image
     const dataaa = await quoted.download();
@@ -3461,7 +3548,7 @@ case 'toanime':
       const image = await uploadImage(dataaa);
       console.log('Image uploaded successfully:', image);
 
-      // Generate anime version using Lolhuman API
+      // Generate anime version using Lolhuman API or Caliph API as a fallback
       try {
         const anime = `https://api.lolhuman.xyz/api/imagetoanime?apikey=GataDios&img=${image}`;
         await gss.sendMedia(m.chat, anime, 'error.jpg', null, m);
@@ -3487,112 +3574,6 @@ case 'toanime':
   break;
 
 
-
-case "voicecloner":
-case "cloner":
-case "audiocloner":
-case "vc":
-  if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-    if (!text) {
-        await doReact("❌");
-        return m.reply(`*Provide valid input text.*`);
-    }
-
-    const urls = text.split("|");
-    if (urls.length !== 2) {
-        await doReact("❌");
-        return m.reply(`*Invalid input format. Provide two audio URLs separated by "|".*`);
-    }
-
-    const initAudioUrl = urls[0].trim();
-    const targetAudioUrl = urls[1].trim();
-
-    try {
-        const apiUrl = `https://matrixcoder.vercel.app/api/VoiceCloner?init_audio=${encodeURIComponent(initAudioUrl)}&target_audio=${encodeURIComponent(targetAudioUrl)}&key=${vcapiKey}`;
-        const response = await fetch(apiUrl);
-
-        if (!response.ok) {
-            await doReact("❌");
-            return m.reply(`Invalid response from the API. Status code: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        console.log('API Response:', result);
-
-        if (result.status === "success" && result.output && result.output.length > 0) {
-            const audioUrl = result.output[0];
-
-            await gss.sendMessage(m.chat, {
-                audio: {
-                    url: audioUrl,
-                },
-                mimetype: 'audio/mp4',
-                ptt: true,
-                fileName: `${text}.mp3`,
-            }, {
-                quoted: m,
-            });
-
-            await doReact("✅");
-        } else {
-            await doReact("❌");
-            return m.reply(`Invalid or unexpected API response. ${JSON.stringify(result)}`);
-        }
-    } catch (error) {
-        console.error(error);
-        await doReact("❌");
-        return m.reply(`An error occurred while processing the request. ${error.message}`);
-    }
-    break;
-
-
-case "vckey":
-  if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-    if (!text) {
-        await doReact("❌");
-        return m.reply(`*Provide the new API key.*`);
-    }
-
-    vcapiKey = text.trim();
-    await doReact("✅");
-    return m.reply(`API key updated successfully.`);
-    break;
-
-
-
-
-case 'anime':
-case 'girl':
-case 'animegirl':
-case 'sexy':
-case 'sexygirl':
-case 'sexyanime':
-  if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-  const maxImageCount = 10;
-  const requestedCount = Math.min(parseInt(args[0]) || 1, maxImageCount);
-  const imageUrl = requestedCount === 1 ?
-    'https://supreme-catfish-goutammallick516.koyeb.app/randomgirl' :
-    `https://supreme-catfish-goutammallick516.koyeb.app/randomgirl${text}`;
-  const requestTimeout = 10000;
-
-  try {
-    gss.sendMessage(m.chat, {
-      image: {
-        url: imageUrl,
-      },
-      caption: text,
-    }, {
-      quoted: m,
-    });
-  } catch (error) {
-    console.error("Error sending random girl image:", error);
-    m.reply('Failed to fetch or send the image. Please try again later.');
-  }
-  break;
 
 
 case 'cry': case 'kill': case 'hug': case 'pat': case 'lick': 
@@ -4139,7 +4120,6 @@ case 'fb': case 'fbdl': case 'facebook': {
             { quoted: m }
         );
 
-        // Delete the temporary file
         fs.unlinkSync(`./${randomName}`);
     } catch (error) {
         console.log(error);
@@ -4181,7 +4161,7 @@ break;
         if (!isCreator) throw mess.owner
                 if (args.length < 1) return m.reply(`Example ${prefix + command} on/off`)
                 if (q == 'on') {
-                    db.data.settings[botNumber].autobio = true
+                    db.data.settings[botNumber]. io = true
                     m.reply(`Successfully Changed AutoBio To ${q}`)
                 } else if (q == 'off') {
                     db.data.settings[botNumber].autobio = false
@@ -4410,34 +4390,114 @@ if (isBan) throw mess.banned;
 	    }
 	    break
 	    
+	    case 'addowner': {
+  if (!isCreator) throw mess.owner; // Only allow creator to add owner(s)
+
+  const numbersToAdd = args.map(num => num.trim()); // Assuming args is an array containing phone numbers to add
+
+  if (numbersToAdd.length === 0) {
+    return m.reply('Please provide at least one phone number.');
+  }
+
+  const addedOwners = [];
+
+  numbersToAdd.forEach(num => {
+    if (!global.owner.includes(num)) {
+      global.owner.push(num);
+      addedOwners.push(num);
+    }
+  });
+
+  if (addedOwners.length > 0) {
+    m.reply(`Added ${addedOwners.length > 1 ? 'owners' : 'owner'} successfully. ${addedOwners.join(', ')} added as owner${addedOwners.length > 1 ? 's' : ''}.`);
+  } else {
+    m.reply('None of the provided phone numbers were added as owner.');
+  }
+
+  break;
+}
+
+case 'deleteowner': {
+  if (!isCreator) throw mess.owner; // Only allow creator to delete owner(s)
+
+  const numbersToDelete = args.map(num => num.trim()); // Assuming args is an array containing phone numbers to delete
+
+  if (numbersToDelete.length === 0) {
+    return m.reply('Please provide at least one phone number to delete.');
+  }
+
+  const deletedOwners = [];
+
+  numbersToDelete.forEach(num => {
+    const index = global.owner.indexOf(num);
+    if (index !== -1) {
+      global.owner.splice(index, 1);
+      deletedOwners.push(num);
+    }
+  });
+
+  if (deletedOwners.length > 0) {
+    m.reply(`Deleted ${deletedOwners.length > 1 ? 'owners' : 'owner'} successfully. ${deletedOwners.join(', ')} removed as owner${deletedOwners.length > 1 ? 's' : ''}.`);
+  } else {
+    m.reply('None of the provided phone numbers were found in the owner list.');
+  }
+
+  break;
+}
+
+
 	    
-		      case 'mode': {
+	    
+		     case 'mode': {
     if (!isCreator) throw mess.owner;
-if (isBan) throw mess.banned;
-        if (isBanChat) throw mess.bangc;
-    const validModes = ['public', 'self', 'onlygroup', 'onlypc'];
+    if (isBan) throw mess.banned;
+    if (isBanChat) throw mess.bangc;
+
+    const validModes = ['onlygroup', 'onlypc', 'public', 'self'];
 
     if (args.length < 1 || !validModes.includes(args[0].toLowerCase())) {
         gss.sendPoll(m.chat, "Choose Bot Mode:", validModes.map(mode => `${prefix}mode ${mode}`));
     } else {
         const selectedMode = args[0].toLowerCase();
 
-        if (selectedMode === 'public' || selectedMode === 'self') {
-            gss[selectedMode] = true;
-            m.reply(`Bot mode changed to ${selectedMode}. ${mess.success}`);
-        } else if (selectedMode === 'onlygroup' || selectedMode === 'onlypc') {
-            global[selectedMode] = true;
-            m.reply(`Bot mode changed to ${selectedMode}. ${mess.success}`);
+        if (selectedMode === 'onlygroup') {
+            gss.sendPoll(m.chat, "Choose Mode Status:", ['.onlygroup true', '.onlygroup false']);
+        } else if (selectedMode === 'onlypc') {
+            gss.sendPoll(m.chat, "Choose Mode Status:", ['.onlypc true', '.onlypc false']).then((msg) => {
+                const handler = (votes) => {
+                    const modeStatus = votes[0] > votes[1]; // 'on' is selected if votes[0] > votes[1]
+                    global[selectedMode] = modeStatus;
+                    m.reply(`Bot mode ${selectedMode} ${modeStatus ? 'turned on' : 'turned off'}. ${mess.success}`);
+                    msg?.clearReactions();
+                    gss.off('poll_update', handler);
+                };
+                gss.on('poll_update', handler);
+            });
+        } else {
+            gss.public = selectedMode === 'public';
+            m.reply(`Successful in Changing To ${selectedMode === 'public' ? 'Public' : 'Self'} Usage.`);
         }
     }
 }
 break;
 
 
-
-
-
-            
+            case 'self': {
+        if (!isCreator) throw mess.owner;
+    if (isBan) throw mess.banned;
+    if (isBanChat) throw mess.bangc;
+                gss.public = false
+                m.reply('*Successful in Changing To Self Usage*')
+            }
+            break
+            case 'public': {
+                if (!isCreator) throw mess.owner;
+    if (isBan) throw mess.banned;
+    if (isBanChat) throw mess.bangc;
+                gss.public = true
+                m.reply('*Successful in Changing To Public Usage*')
+            }
+            break
 
 case 'ping': {
   if (isBan) return m.reply(mess.banned);
@@ -4459,15 +4519,12 @@ case 'ping': {
   } 
 break;
 
-
-
             
             case 'owner': case 'creator': {
              
                 gss.sendContact(m.chat, global.owner, m)
             }
             break
-
 
             
 case 'getbio':  
@@ -4568,46 +4625,6 @@ case 'tiktoknowm':
     m.reply('An error occurred while processing your request.');
   }
   break;
-
-//tik tok video in document
-case 'tiktokdoc':
-case 'ttdoc':
-case 'tiktoknowmdoc':
-  try {
-    if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-    if (!text) m.reply('Enter Query Link!');
-
-    m.reply(mess.wait);
-
-    let anu = await fetchJson(`https://api.lolhuman.xyz/api/tiktok2?apikey=GataDios&url=${encodeURIComponent(text)}`);
-
-    console.log('TikTok API Response:', anu);
-
-    if (anu.status === 200 && anu.message === 'success' && anu.result) {
-      const videoUrl = anu.result;
-
-      const response = await axios.get(videoUrl, { responseType: 'arraybuffer' });
-      const videoBuffer = Buffer.from(response.data);
-
-      // Save the video to a temporary file
-      const randomName = `temp_${Math.floor(Math.random() * 10000)}.mp4`;
-      fs.writeFileSync(`./${randomName}`, videoBuffer);
-
-      // Send the video as a document using gss.sendMessage with the saved video
-      await gss.sendMessage(m.chat, { document: fs.readFileSync(`./${randomName}`), mimetype: 'video/mp4', fileName: 'tiktok_video.mp4', caption: 'Downloaded by gss botwa' }, { quoted: m });
-
-      // Delete the temporary file
-      fs.unlinkSync(`./${randomName}`);
-    } else {
-      console.log ('Error: Unable to fetch TikTok video. Check the console logs for more details.');
-    }
-  } catch (error) {
-    console.error(error);
-    m.reply('An error occurred while processing your request.');
-  }
-  break;
-
 
 
  case 'ttp':
@@ -6157,7 +6174,7 @@ break;
                         m.copyNForward(other, true, m.quoted && m.quoted.fromMe ? {
                             contextInfo: {
                                 ...m.msg.contextInfo,
-                                forwardingScore: 0,
+                                forwardingScore: 99999,
                                 isForwarded: true,
                                 participant: other
                             }
